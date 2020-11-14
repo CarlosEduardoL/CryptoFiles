@@ -1,5 +1,7 @@
 package util
 
+import javafx.scene.Node
+import javafx.scene.control.Tooltip
 import java.io.*
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -20,16 +22,5 @@ fun File.calcSHA1(): String {
 }
 
 fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }.toUpperCase()
-
-@Throws(IOException::class)
-fun InputStream.doCopy(os: OutputStream) {
-    val bytes = ByteArray(2048)
-    var numBytes: Int
-
-    while (read(bytes).also { numBytes = it } != -1) {
-        os.write(bytes, 0, numBytes)
-    }
-    os.flush()
-    os.close()
-    close()
-}
+fun installTooltip(tooltip: Tooltip, vararg nodes: Node) = nodes.forEach { Tooltip.install(it,tooltip) }
+fun uninstallTooltips(tooltip: Tooltip,vararg nodes: Node) = nodes.forEach { Tooltip.uninstall(it,tooltip) }

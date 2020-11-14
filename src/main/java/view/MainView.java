@@ -19,6 +19,7 @@ public class MainView extends Application {
             loader.setLocation(MainView.class.getResource("/view/RootLayout.fxml"));
             var rootLayout = (Parent) loader.load();
             primaryStage.setScene(new Scene(rootLayout));
+            primaryStage.setResizable(false);
             primaryStage.show();
         }catch (Exception e){
             e.printStackTrace();
