@@ -1,9 +1,6 @@
 package util
 
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.IOException
+import java.io.*
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
@@ -22,3 +19,16 @@ fun File.calcSHA1(): String {
 }
 
 fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }.toUpperCase()
+
+@Throws(IOException::class)
+fun InputStream.doCopy(os: OutputStream) {
+    val bytes = ByteArray(2048)
+    var numBytes: Int
+
+    while (read(bytes).also { numBytes = it } != -1) {
+        os.write(bytes, 0, numBytes)
+    }
+    os.flush()
+    os.close()
+    close()
+}

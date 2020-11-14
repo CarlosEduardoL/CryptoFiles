@@ -1,10 +1,15 @@
 package logic
 
+import util.doCopy
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.lang.Exception
 import javax.crypto.Cipher
 import kotlin.Throws
 import javax.crypto.SecretKeyFactory
 import java.security.spec.KeySpec
+import javax.crypto.CipherOutputStream
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
@@ -20,9 +25,9 @@ private fun String.toKey(): SecretKeySpec {
     return SecretKeySpec(tmp.encoded, "AES")
 }
 
-fun ByteArray.encrypt(key: String): ByteArray {
+fun File.encrypt(key: String, out: FileOutputStream) {
     cipher.init(Cipher.ENCRYPT_MODE, key.toKey())
-    return cipher.doFinal(this)
+    FileInputStream(this).doCopy(CipherOutputStream(out, cipher))
 }
 
 fun ByteArray.decrypt(key: String): ByteArray {

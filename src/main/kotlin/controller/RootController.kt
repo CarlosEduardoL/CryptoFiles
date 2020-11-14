@@ -6,7 +6,9 @@ import javafx.scene.control.TextField
 import javafx.stage.FileChooser
 import logic.decrypt
 import logic.encrypt
+import util.calcSHA1
 import java.io.File
+import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -31,8 +33,11 @@ class RootController {
     @FXML
     private fun encrypt() {
         file?.let {
-            val info = Files.readAllBytes(Paths.get(it.absolutePath))
-            Files.write(Paths.get(it.absolutePath + ".encrypt"), info.encrypt(password!!.text))
+            val sha1 = it.calcSHA1().toByteArray()
+            val out = FileOutputStream(it.absolutePath + ".encrypt")
+            out.write(sha1)
+            out.flush()
+            it.encrypt(password!!.text, out)
         } ?: {
             TODO("Show Error Message Here!")
         }()
