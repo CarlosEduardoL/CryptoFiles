@@ -1,8 +1,13 @@
 package util
 
+import javafx.concurrent.Task
 import javafx.scene.Node
 import javafx.scene.control.Tooltip
-import java.io.*
+import javafx.stage.Stage
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.IOException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
@@ -22,5 +27,12 @@ fun File.calcSHA1(): String {
 }
 
 fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }.toUpperCase()
-fun installTooltip(tooltip: Tooltip, vararg nodes: Node) = nodes.forEach { Tooltip.install(it,tooltip) }
-fun uninstallTooltips(tooltip: Tooltip,vararg nodes: Node) = nodes.forEach { Tooltip.uninstall(it,tooltip) }
+
+val Node.stage: Stage
+    get() = scene.window as Stage
+
+fun installTooltip(tooltip: Tooltip, vararg nodes: Node) = nodes.forEach { Tooltip.install(it, tooltip) }
+
+fun task(body: ((Long, Long) -> Unit) -> Unit) = object : Task<Unit>() {
+    override fun call() = body { a, b -> updateProgress(a, b) }
+}

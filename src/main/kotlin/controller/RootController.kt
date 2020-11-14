@@ -1,19 +1,14 @@
 package controller
 
 import javafx.application.Platform
-import javafx.concurrent.Task
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.shape.Circle
 import javafx.stage.FileChooser
-import util.calcSHA1
-import util.decrypt
-import util.encrypt
-import util.installTooltip
+import util.*
 import java.io.File
-import java.io.FileOutputStream
 import java.util.*
 
 class RootController {
@@ -42,11 +37,9 @@ class RootController {
 
     @FXML
     private fun openFileChooser() {
-        if(enable) file = fileChooser.showOpenDialog(selectButton.scene.window)
+        if(enable) file = fileChooser.showOpenDialog(selectButton.stage)
         file?.let {
             selectButton.text = it.name
-            progressBar.progressProperty().unbind()
-            progressBar.progressProperty().set(0.0)
             if (it.name.endsWith(".encrypt")) {
                 image.image = Image(RootController::class.java.getResource("/images/open.png").toString())
                 installTooltip(tooltip1,image,circle)
@@ -68,44 +61,22 @@ class RootController {
 
     private fun File.encrypt() {
         val size = length()
-        val task = object : Task<Unit>() {
-            override fun call() {
-                val sha1 = calcSHA1().toByteArray()
-                val out = FileOutputStream("$absolutePath.encrypt")
-                out.write(sha1)
-                out.flush()
-                encrypt(password.text, out) { updateProgress(it, size) }
-                enable = true
-                Platform.runLater { finish() }
-            }
+        val task = task {
+            encrypt(password.text) { it(it, size) }
+            onProcessFinish(::finishEncrypt)
         }
         progressBar.progressProperty().bind(task.progressProperty())
         Thread(task).start()
-        deselect()
     }
 
     private fun File.decrypt() {
         val size = length()
-        val task = object : Task<Unit>() {
-            override fun call() {
-                val decryptFile = File(absolutePath.removeSuffix(".encrypt"))
-                val inStream = inputStream()
-                val sha1 = String(inStream.readNBytes(40))
-                inStream.decrypt(password.text, decryptFile.outputStream()) { updateProgress(it, size-40) }
-                val calcSHA1 = decryptFile.calcSHA1()
-                Platform.runLater {
-                    if (calcSHA1 == sha1) {
-                        wellSHA1(sha1, calcSHA1)
-                    } else {
-                        wrongSHA1(sha1, calcSHA1)
-                    }
-                }
-                enable = true
-            }
+        val task = task {
+            val (sha1, calcSHA1) = decrypt(password.text) { it(it, size-40) }
+            onProcessFinish { finishDecrypt(sha1, calcSHA1) }
         }
         progressBar.progressProperty().bind(task.progressProperty())
         Thread(task).start()
-        deselect()
     }
 
     private fun deselect() {
@@ -113,29 +84,36 @@ class RootController {
         file = null
     }
 
-    private fun finish(): Optional<ButtonType> = Alert(Alert.AlertType.INFORMATION).apply {
+    private fun onProcessFinish(alert: () -> Optional<ButtonType>){
+        enable = true
+        Platform.runLater {
+            alert()
+            deselect()
+            progressBar.progressProperty().unbind()
+            progressBar.progressProperty().set(0.0)
+        }
+    }
+
+    private fun finishEncrypt(): Optional<ButtonType> = Alert(Alert.AlertType.INFORMATION).apply {
+        initOwner(circle.stage)
         title = "Finalizado"
         headerText = null
         contentText = "El proceso ha finalizado"
     }.showAndWait()
 
-    private fun wellSHA1(expected: String, obtined: String): Optional<ButtonType> = Alert(Alert.AlertType.INFORMATION).apply {
-        title = "Las SHA-1 coinciden"
-        headerText = null
-        dialogPane.content = Label("""|El archivo ha sido correctamente desencriptado.
-                                      |SHA-1 Esperada: $expected
-                                      |SHA-1 Obtenida: $obtined
-        """.trimMargin())
-    }.showAndWait()
+    private fun message(well: Boolean) = if (well )"El archivo ha sido correctamente desencriptado." else "Contraseña incorrecta o Archivo no encriptado con este programa."
 
-    private fun wrongSHA1(expected: String, obtined: String): Optional<ButtonType> = Alert(Alert.AlertType.ERROR).apply {
-        title = "Las SHA-1 no coinciden"
-        headerText = null
-        dialogPane.content = Label("""|Contraseña incorrecta o Archivo no encriptado con este programa.
+    private fun finishDecrypt(expected: String, obtained: String): Optional<ButtonType> = (expected == obtained).let {
+        Alert(if (it) Alert.AlertType.INFORMATION else Alert.AlertType.ERROR).apply {
+            initOwner(circle.stage)
+            title = "Las SHA-1 ${if (!it) "no " else ""}coinciden"
+            headerText = null
+            dialogPane.content = Label("""|${message(it)}
                                       |SHA-1 Esperada: $expected
-                                      |SHA-1 Obtenida: $obtined
+                                      |SHA-1 Obtenida: $obtained
         """.trimMargin())
-    }.showAndWait()
+        }.showAndWait()
+    }
 
     private fun unspecifiedFile(): Optional<ButtonType> = Alert(Alert.AlertType.ERROR).apply {
         title = "Archivo no especificado"
