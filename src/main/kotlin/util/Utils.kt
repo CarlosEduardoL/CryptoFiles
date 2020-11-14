@@ -4,6 +4,7 @@ import java.io.*
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
+
 @Throws(FileNotFoundException::class, IOException::class, NoSuchAlgorithmException::class)
 fun File.calcSHA1(): String {
     val sha1 = MessageDigest.getInstance("SHA-1")

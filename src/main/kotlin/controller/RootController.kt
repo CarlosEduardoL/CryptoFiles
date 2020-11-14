@@ -4,10 +4,12 @@ import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javafx.scene.control.TextField
 import javafx.stage.FileChooser
-import logic.decrypt
-import logic.encrypt
+
 import util.calcSHA1
+import util.decrypt
+import util.encrypt
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -46,8 +48,17 @@ class RootController {
     @FXML
     private fun decrypt() {
         file?.let {
-            val info = Files.readAllBytes(Paths.get(it.absolutePath))
-            Files.write(Paths.get(it.absolutePath.removeSuffix(".encrypt")), info.decrypt(password!!.text))
+            val decryptFile = File(it.absolutePath.removeSuffix(".encrypt"))
+            val inStream = FileInputStream(it)
+            val sha1 = String(inStream.readNBytes(40))
+            inStream.decrypt(password!!.text, FileOutputStream(decryptFile))
+            println("sha1 original: $sha1")
+            println("sha 1 nueva: ${decryptFile.calcSHA1()}")
+            if (decryptFile.calcSHA1() == sha1){
+                // Aqui mostar que se desencripto con exito y mostrar un mensaje por pantalla
+            }else {
+                // Hubo algun error o se intento desencriptar un archivo que no encriptamos nosotros
+            }
         } ?: {
             TODO("Show Error Message Here!")
         }()

@@ -1,12 +1,9 @@
-package logic
+package util
 
-import util.doCopy
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.lang.Exception
 import javax.crypto.Cipher
-import kotlin.Throws
 import javax.crypto.SecretKeyFactory
 import java.security.spec.KeySpec
 import javax.crypto.CipherOutputStream
@@ -30,7 +27,7 @@ fun File.encrypt(key: String, out: FileOutputStream) {
     FileInputStream(this).doCopy(CipherOutputStream(out, cipher))
 }
 
-fun ByteArray.decrypt(key: String): ByteArray {
+fun FileInputStream.decrypt(key: String, out: FileOutputStream) {
     cipher.init(Cipher.DECRYPT_MODE, key.toKey())
-    return cipher.doFinal(this)
+    doCopy(CipherOutputStream(out, cipher))
 }
