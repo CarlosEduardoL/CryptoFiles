@@ -11,7 +11,7 @@
 <?import javafx.scene.text.Text?>
 
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.RootController">
    <children>
       <GridPane layoutX="131.0" layoutY="115.0" prefHeight="169.0" prefWidth="338.0">
         <columnConstraints>
@@ -26,10 +26,10 @@
          <children>
             <Label text="Archivo" />
             <Label text="Contraseña" GridPane.rowIndex="1" />
-            <Button fx:id="selectButton" mnemonicParsing="false" text="Seleccionar" GridPane.columnIndex="1" />
+            <Button fx:id="selectButton" mnemonicParsing="false" onAction="#openFileChooser" text="Seleccionar" GridPane.columnIndex="1" />
             <TextField fx:id="password" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" text="Encriptar" GridPane.rowIndex="2" />
-            <Button mnemonicParsing="false" text="Desencriptar" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#encrypt" text="Encriptar" GridPane.rowIndex="2" />
+            <Button mnemonicParsing="false" onAction="#decrypt" text="Desencriptar" GridPane.columnIndex="1" GridPane.rowIndex="2" />
          </children>
       </GridPane>
       <Text layoutX="214.0" layoutY="64.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Crypto Files">
