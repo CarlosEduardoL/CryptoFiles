@@ -1,6 +1,9 @@
 package view;
 
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class MainView extends Application {
@@ -10,7 +13,17 @@ public class MainView extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("CryptoFiles");
-        primaryStage.show();
+        try {
+            primaryStage.setTitle("CryptoFiles");
+            var loader = new FXMLLoader();
+            loader.setLocation(MainView.class.getResource("/view/RootLayout.fxml"));
+            var rootLayout = (Parent) loader.load();
+            primaryStage.setScene(new Scene(rootLayout));
+            primaryStage.show();
+        }catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        }
     }
+
 }
