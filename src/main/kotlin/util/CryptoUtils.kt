@@ -1,9 +1,6 @@
 package util
 
-import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.security.spec.KeySpec
 import javax.crypto.Cipher
 import javax.crypto.CipherOutputStream
@@ -20,7 +17,7 @@ private const val iterationCount = 1024
 private const val keyStrength = 128
 
 /**
- * Metodo que transfomra una contraseña [String] en formato UTF-8
+ * Método que transforma una contraseña [String] en formato UTF-8
  * y usando el algoritmo PBKDF2 la convierte en una llave de 128 bits
  * @receiver Contraseña en formato UTF-8
  * @return Llave [SecretKeySpec] de 128 bits lista para ser
@@ -30,11 +27,16 @@ private fun String.toKey(): SecretKeySpec {
     val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
     val spec: KeySpec = PBEKeySpec(toCharArray(), salt, iterationCount, keyStrength)
     return SecretKeySpec(factory.generateSecret(spec).encoded, "AES")
-
 }
 
 /**
- *
+ * Método que toma la información sin encriptar y la encripta
+ * guardando esta información en otro archivo con el mismo nombre pero con .encrypt al final
+ * guarda el SHA-1 del archivo sin encriptar al inicio del archivo encriptado para probar
+ * el checksum del archivo encriptado
+ * @receiver archivo sin encriptar
+ * @param key contraseña en forma de [String] codificada en UTF-8
+ * @param progress función de actualización del progreso
  */
 fun File.encrypt(key: String, progress: (Long) -> Unit) {
     val sha1 = calcSHA1().toByteArray() //Calcular el SHA-1 del archivo a encriptar
@@ -46,9 +48,12 @@ fun File.encrypt(key: String, progress: (Long) -> Unit) {
 }
 
 /**
- * Toma la informacion de un archivo encriptado y la desencripta
+ * Toma la información de un archivo encriptado y la desencripta
  * guardando esta en otro archivo, calcula el SHA-1 de este y
  * retorna el SHA-1 esperado y el SHA-1 calculado
+ * @receiver archivo encriptado
+ * @param key contraseña en forma de [String] codificada en UTF-8
+ * @param progress función de actualización del progreso
  */
 fun File.decrypt(key: String, progress: (Long) -> Unit): Pair<String, String> {
     val decryptFile = File(absolutePath.removeSuffix(".encrypt"))
@@ -61,9 +66,13 @@ fun File.decrypt(key: String, progress: (Long) -> Unit): Pair<String, String> {
 }
 
 /**
- *
+ * Método que pasa la información el archivo a través de un [CipherOutputStream]
+ * que cifra o decifra dependiendo de la configuración y lo guarda en otro archivo
+ * @receiver recibe un Stream de datos de un archivo
+ * @param os flujo de salida del archivo nuevo en modo cifrado o descifrado dependiendo la configuración del cipher
+ * @param progress función de actualización del progreso
  */
-fun InputStream.doCopy(os: OutputStream, progress: (Long) -> Unit) {
+fun FileInputStream.doCopy(os: CipherOutputStream, progress: (Long) -> Unit) {
     val bytes = ByteArray(2048 * 8)
     var numBytes: Int
     var accumulator: Long = 0
