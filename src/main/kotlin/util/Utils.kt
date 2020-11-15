@@ -11,6 +11,10 @@ import java.io.IOException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
+/**
+ * Método que calcula el hash del archivo (Receiver) con un buffer de 8B
+ * La salida es un String hexadecimal de 40 B
+ */
 
 @Throws(FileNotFoundException::class, IOException::class, NoSuchAlgorithmException::class)
 fun File.calcSHA1(): String {
