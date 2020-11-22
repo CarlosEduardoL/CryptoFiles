@@ -2,16 +2,20 @@ package controller
 
 import javafx.application.Platform
 import javafx.fxml.FXML
+import javafx.fxml.Initializable
 import javafx.scene.control.*
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
+import javafx.scene.input.TransferMode
+import javafx.scene.layout.AnchorPane
 import javafx.scene.shape.Circle
 import javafx.stage.FileChooser
 import util.*
 import java.io.File
+import java.net.URL
 import java.util.*
 
-class RootController {
+class RootController: Initializable {
     private val fileChooser = FileChooser()
     private var file: File? = null
 
@@ -30,23 +34,45 @@ class RootController {
     @FXML
     private lateinit var progressBar: ProgressBar
 
+    @FXML
+    private lateinit var pane: AnchorPane
+
     private val tooltip1 = Tooltip("Desencriptar archivo")
     private val tooltip2 = Tooltip("Encriptar archivo")
 
     private var enable = true
 
+    override fun initialize(location: URL?, resources: ResourceBundle?) {
+        pane.setOnDragOver {
+            if (it.dragboard.hasFiles() && it.dragboard.files.size == 1) it.acceptTransferModes(*TransferMode.COPY_OR_MOVE)
+            it.consume()
+        }
+        pane.setOnDragDropped {
+            val db = it.dragboard
+            var success = false
+            if (db.hasFiles() && db.files.size == 1 && enable){
+                db.files[0].selectFile()
+                success = true
+            }
+            it.isDropCompleted = success
+            it.consume()
+        }
+    }
+
     @FXML
     private fun openFileChooser() {
         if(enable) file = fileChooser.showOpenDialog(selectButton.stage)
-        file?.let {
-            selectButton.text = it.name
-            if (it.name.endsWith(".encrypt")) {
-                image.image = Image(RootController::class.java.getResource("/images/open.png").toString())
-                installTooltip(tooltip1,image,circle)
-            } else {
-                image.image = Image(RootController::class.java.getResource("/images/closed.png").toString())
-                installTooltip(tooltip2,image,circle)
-            }
+        file?.selectFile()
+    }
+
+    private fun File.selectFile(){
+        selectButton.text = name
+        if (name.endsWith(".encrypt")) {
+            image.image = Image(RootController::class.java.getResource("/images/open.png").toString())
+            installTooltip(tooltip1,image,circle)
+        } else {
+            image.image = Image(RootController::class.java.getResource("/images/closed.png").toString())
+            installTooltip(tooltip2,image,circle)
         }
     }
 
