@@ -66,6 +66,7 @@ class RootController: Initializable {
     }
 
     private fun File.selectFile(){
+        file = this
         selectButton.text = name
         if (name.endsWith(".encrypt")) {
             image.image = Image(RootController::class.java.getResource("/images/open.png").toString())
